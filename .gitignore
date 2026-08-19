@@ -1,122 +1,86 @@
-# ============================================================
-# Python
-# ============================================================
-
+# Python and environments
 __pycache__/
 *.py[cod]
 *$py.class
-
 *.so
-
-# Virtual environments
+.Python
 venv/
 .venv/
 env/
-.env/
 ENV/
+env.bak/
+venv.bak/
+__pypackages__/
 
-# Packaging
+# Packaging and build output
 build/
 dist/
 *.egg-info/
 .eggs/
+eggs/
+develop-eggs/
+wheels/
+*.egg
+*.manifest
+*.spec
 
-# ============================================================
-# Environment / Secrets
-# ============================================================
-
+# Environment and secrets
 .env
 .env.*
 !.env.example
-
-# API keys / credentials
 *.pem
 *.key
 *.p12
 *.pfx
 credentials.json
 secrets.json
+.pypirc
 
-# ============================================================
-# IDE / Editors
-# ============================================================
-
+# Editors and operating systems
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# ============================================================
-# OS
-# ============================================================
-
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# ============================================================
-# Logs
-# ============================================================
-
+# Logs, local state, and temporary output
 *.log
 logs/
-
-# ============================================================
-# Local database / runtime state
-# ============================================================
-
 *.db
 *.sqlite
 *.sqlite3
-
-# ============================================================
-# Temporary files
-# ============================================================
-
+*.sqlite3-journal
 *.tmp
 *.temp
 *.bak
 *.cache
+uploads/
+downloads/
+tmp/
+temp/
 
-# ============================================================
-# Test / Coverage
-# ============================================================
-
+# Tests, coverage, and type-checker caches
 .pytest_cache/
 .coverage
 .coverage.*
 htmlcov/
 .tox/
 .nox/
+.hypothesis/
+coverage.xml
+*.cover
+*.py.cover
+.mypy_cache/
+.pyre/
+.pytype/
+.ruff_cache/
 
-# ============================================================
-# Jupyter
-# ============================================================
-
-.ipynb_checkpoints/
-
-# ============================================================
-# Node / Frontend (if applicable)
-# ============================================================
-
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# ============================================================
-# Generated / local files
-# ============================================================
-
-uploads/
-downloads/
-tmp/
-temp/
-
-# ============================================================
-# Local configuration
-# ============================================================
-
+# Local application configuration
 config.local.py
 settings.local.py
+local_settings.py
+instance/
+.streamlit/secrets.toml
