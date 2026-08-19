@@ -56,8 +56,7 @@ Natural Language Request
             |
             v
        User Response
-
-
+```
 
 ## Current Capabilities
 
