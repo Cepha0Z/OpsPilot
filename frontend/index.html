@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nebulous AI</title>
+
+    <link rel="stylesheet" href="/frontend/style.css?v=5">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="sidebar-top">
+
+            <div class="brand">
+                <div class="brand-mark">N</div>
+
+                <div>
+                    <div class="brand-name">Nebulous AI</div>
+                    <div class="brand-subtitle">Microsoft 365 Assistant</div>
+                </div>
+            </div>
+
+            <button id="new-chat-button" class="new-chat-button">
+                <span>＋</span>
+                New Chat
+            </button>
+
+        </div>
+
+
+        <div class="chat-history">
+
+            <div class="history-title">
+                Recent
+            </div>
+
+            <div id="history-list">
+                <!-- Conversations will appear here -->
+            </div>
+
+        </div>
+
+
+        <div class="sidebar-bottom">
+
+            <div class="status">
+                <span id="status-dot" class="status-dot"></span>
+
+                <div>
+                    <div id="status-text">Connecting...</div>
+                    <div class="status-subtitle">Local AI system</div>
+                </div>
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+    <main class="main">
+
+        <!-- HEADER -->
+        <header class="header">
+
+            <div>
+                <div class="header-title">
+                    Nebulous AI
+                </div>
+
+                <div class="header-subtitle">
+                    Internal Microsoft 365 Assistant
+                </div>
+            </div>
+
+        </header>
+
+
+        <!-- CHAT -->
+        <section id="chat" class="chat">
+
+            <!-- EMPTY STATE -->
+            <div id="empty-state" class="empty-state">
+
+                <div class="empty-logo">
+                    N
+                </div>
+
+                <h1>
+                    How can I help?
+                </h1>
+
+                <p>
+                    Manage Microsoft 365 using natural language.
+                </p>
+
+
+                <div class="suggestions">
+
+                    <button class="suggestion"
+                            data-message="Show me my recent emails">
+                        <span>✉</span>
+                        <div>
+                            <strong>Check emails</strong>
+                            <small>Show my recent emails</small>
+                        </div>
+                    </button>
+
+
+                    <button class="suggestion"
+                            data-message="Show me all users">
+                        <span>👥</span>
+                        <div>
+                            <strong>Manage users</strong>
+                            <small>Show all Microsoft 365 users</small>
+                        </div>
+                    </button>
+
+
+                    <button class="suggestion"
+                            data-message="Show me John Doe">
+                        <span>⌕</span>
+                        <div>
+                            <strong>Find a user</strong>
+                            <small>Look up a Microsoft 365 user</small>
+                        </div>
+                    </button>
+
+
+                    <button class="suggestion"
+                            data-message="Show me my unread emails">
+                        <span>●</span>
+                        <div>
+                            <strong>Unread emails</strong>
+                            <small>Show unread messages</small>
+                        </div>
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- INPUT AREA -->
+        <div class="input-area">
+
+            <div class="input-container">
+
+                <textarea
+                    id="message-input"
+                    placeholder="Message Nebulous AI..."
+                    rows="1"
+                    autocomplete="off"
+                ></textarea>
+
+                <button id="send-button" class="send-button" title="Send">
+                    ↑
+                </button>
+
+            </div>
+
+            <div class="input-hint">
+                Nebulous AI can make changes to Microsoft 365. Approval is required for sensitive actions.
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<script src="/frontend/app.js?v=5"></script>
+
+</body>
+</html>
