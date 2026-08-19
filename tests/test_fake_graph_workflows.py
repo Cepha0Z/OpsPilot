@@ -3,8 +3,8 @@ import unittest
 
 os.environ.setdefault("GEMINI_API_KEY", "test-key")
 
-from executor import approve_task, create_execution_plan, run_plan
-from workflow_store import workflow_store
+from opspilot.core.executor import approve_task, create_execution_plan, run_plan
+from opspilot.core.workflow_store import workflow_store
 from fake_graph import FakeGraph
 
 

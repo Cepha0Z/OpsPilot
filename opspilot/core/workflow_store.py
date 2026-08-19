@@ -6,12 +6,12 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from actor import Actor
+from .actor import Actor
 
 
-DATABASE_PATH = Path(os.getenv("NEBULOUS_WORKFLOW_DB", "nebulous-workflows.sqlite3"))
-APPROVAL_TTL_SECONDS = int(os.getenv("NEBULOUS_APPROVAL_TTL_SECONDS", "900"))
-CLARIFICATION_TTL_SECONDS = int(os.getenv("NEBULOUS_CLARIFICATION_TTL_SECONDS", "1800"))
+DATABASE_PATH = Path(os.getenv("OPSPILOT_WORKFLOW_DB", os.getenv("NEBULOUS_WORKFLOW_DB", "opspilot-workflows.sqlite3")))
+APPROVAL_TTL_SECONDS = int(os.getenv("OPSPILOT_APPROVAL_TTL_SECONDS", os.getenv("NEBULOUS_APPROVAL_TTL_SECONDS", "900")))
+CLARIFICATION_TTL_SECONDS = int(os.getenv("OPSPILOT_CLARIFICATION_TTL_SECONDS", os.getenv("NEBULOUS_CLARIFICATION_TTL_SECONDS", "1800")))
 
 
 def now() -> str:

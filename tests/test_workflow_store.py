@@ -2,8 +2,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from actor import Actor
-from workflow_store import WorkflowStore, expiry
+from opspilot.core.actor import Actor
+from opspilot.core.workflow_store import WorkflowStore, expiry
 
 
 def state(execution_id="execution"):

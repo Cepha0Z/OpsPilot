@@ -1,4 +1,4 @@
-from graph.client import graph_get, graph_get_collection, graph_post, path_segment
+from ..integrations.graph.client import graph_get, graph_get_collection, graph_post, path_segment
 
 
 DEFAULT_MAILBOX = "studio1@nebulousdesign.com"

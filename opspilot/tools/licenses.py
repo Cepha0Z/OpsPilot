@@ -1,7 +1,7 @@
-from tools.users import find_users
-from config.licenses import LICENSES
-from graph.client import GraphError, graph_get, graph_post, path_segment
-from audit_log import log_event
+from .users import find_users
+from ..config.licenses import LICENSES
+from ..integrations.graph.client import GraphError, graph_get, graph_post, path_segment
+from ..core.audit_log import log_event
 
 
 # ============================================================

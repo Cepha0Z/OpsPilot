@@ -7,16 +7,16 @@ from unittest.mock import patch
 
 os.environ.setdefault("GEMINI_API_KEY", "test-key")
 
-from actor import Actor
-import executor as executor_module
-from agent import (
+from opspilot.core.actor import Actor
+import opspilot.core.executor as executor_module
+from opspilot.core.agent import (
     build_execution_report,
     final_response,
     run_agent,
     unsupported_capability_response,
 )
-from audit_log import redact
-from executor import (
+from opspilot.core.audit_log import redact
+from opspilot.core.executor import (
     approve_task,
     create_approval,
     create_execution_plan,
@@ -24,16 +24,16 @@ from executor import (
     reject_task,
     run_plan,
 )
-from workflow_store import workflow_store
-from planner import parse_plan, plan_diagnostic, validate_tasks
-from models import CommandResult, sanitize_public_text
-from graph.client import GraphError
-from tool_spec import TOOL_SPECS
-from tool_spec import get_tool_spec
-from tools.licenses import list_user_licenses
-from tools.ai import summarize_email
-import tools.users as users_module
-from llm.client import ask
+from opspilot.core.workflow_store import workflow_store
+from opspilot.core.planner import parse_plan, plan_diagnostic, plan_request, validate_tasks
+from opspilot.core.models import CommandResult, sanitize_public_text
+from opspilot.integrations.graph.client import GraphError
+from opspilot.core.tool_spec import TOOL_SPECS
+from opspilot.core.tool_spec import get_tool_spec
+from opspilot.tools.licenses import list_user_licenses
+from opspilot.tools.ai import summarize_email
+import opspilot.tools.users as users_module
+from opspilot.services.llm.client import ask
 
 
 class Phase1ContractTests(unittest.TestCase):
@@ -47,7 +47,7 @@ class Phase1ContractTests(unittest.TestCase):
                 {"id": "remove", "tool": "remove_license", "parameters": {}}
             ])
 
-    @patch("agent.plan_request")
+    @patch("opspilot.core.agent.plan_request")
     def test_acknowledgement_does_not_trigger_a_workflow(self, plan_request):
         response = run_agent("thanks next", session_id="acknowledgement-session")
 
@@ -69,7 +69,7 @@ class Phase1ContractTests(unittest.TestCase):
                 self.assertEqual(code, expected_code)
                 self.assertNotIn("exfiltrate_secrets", message)
 
-    @patch("agent.plan_request")
+    @patch("opspilot.core.agent.plan_request")
     def test_invalid_planner_output_returns_a_safe_diagnostic(self, plan_request):
         plan_request.return_value = json.dumps({
             "type": "plan",
@@ -83,7 +83,7 @@ class Phase1ContractTests(unittest.TestCase):
         self.assertIn("does not support", response["message"])
         self.assertNotIn("not_registered", response["message"])
 
-    @patch("agent.plan_request")
+    @patch("opspilot.core.agent.plan_request")
     def test_unsupported_capabilities_are_rejected_before_planning(self, plan_request):
         response = run_agent(
             "Find users who haven't received an email from me in the last 30 days.",
@@ -157,6 +157,85 @@ class Phase1ContractTests(unittest.TestCase):
 
         self.assertEqual(plan["tasks"][0]["parameters"]["personal_email"], "ada@example.com")
         self.assertEqual(plan["tasks"][1]["parameters"]["recipient"], "ada@example.com")
+
+    def test_new_account_license_and_credential_email_plan_is_valid(self):
+        """A common three-action request must retain every required input."""
+        plan = parse_plan(json.dumps({
+            "type": "plan",
+            "tasks": [
+                {
+                    "id": "create_pri",
+                    "tool": "create_user",
+                    "parameters": {
+                        "first_name": "Pri",
+                        "last_name": "Shah",
+                        "department": "Marketing",
+                        "personal_email": "pri@example.com",
+                    },
+                },
+                {
+                    "id": "assign_pri_flow_free",
+                    "tool": "assign_license",
+                    "depends_on": ["create_pri"],
+                    "parameters": {
+                        "user_id": {"$ref": "create_pri.user_id"},
+                        "license": "Flow Free",
+                    },
+                },
+                {
+                    "id": "send_pri_credentials",
+                    "tool": "send_email",
+                    "depends_on": ["create_pri"],
+                    "parameters": {
+                        "recipient": "pri@example.com",
+                        "subject": "Your Microsoft 365 account",
+                        "body": (
+                            "Welcome.\\n\\nUsername: {{create_pri.company_email}}\\n"
+                            "Temporary password: {{create_pri.temporary_password}}"
+                        ),
+                    },
+                },
+            ],
+        }))
+
+        tasks = {task["id"]: task for task in plan["tasks"]}
+        self.assertTrue(all(task["requires_approval"] for task in tasks.values()))
+        self.assertEqual(
+            tasks["assign_pri_flow_free"]["parameters"]["user_id"],
+            {"$ref": "create_pri.user_id"},
+        )
+        self.assertIn("{{create_pri.company_email}}", tasks["send_pri_credentials"]["parameters"]["body"])
+        self.assertIn("{{create_pri.temporary_password}}", tasks["send_pri_credentials"]["parameters"]["body"])
+
+    @patch("opspilot.core.planner.ask")
+    def test_planner_repairs_an_incomplete_credential_email_plan(self, ask):
+        incomplete = {
+            "type": "plan",
+            "tasks": [{
+                "id": "send_credentials",
+                "tool": "send_email",
+                "parameters": {"recipient": "pri@example.com"},
+            }],
+        }
+        repaired = {
+            "type": "plan",
+            "tasks": [{
+                "id": "send_credentials",
+                "tool": "send_email",
+                "parameters": {
+                    "recipient": "pri@example.com",
+                    "subject": "Your Microsoft 365 account",
+                    "body": "Welcome.",
+                },
+            }],
+        }
+        ask.side_effect = [json.dumps(incomplete), json.dumps(repaired)]
+
+        response = plan_request("Email Pri her login credentials.")
+
+        self.assertEqual(json.loads(response), repaired)
+        self.assertEqual(ask.call_count, 2)
+        self.assertIn("send_email task requires recipient, subject, and body", ask.call_args.args[0])
 
     def test_named_user_email_draft_uses_profile_email_with_a_dependency(self):
         plan = parse_plan(json.dumps({
@@ -236,8 +315,8 @@ class Phase1ContractTests(unittest.TestCase):
         self.assertEqual(value["body"], "[REDACTED]")
         self.assertEqual(value["safe"], "kept")
 
-    @patch("llm.client.time.sleep")
-    @patch("llm.client.client.models.generate_content")
+    @patch("opspilot.services.llm.client.time.sleep")
+    @patch("opspilot.services.llm.client.client.models.generate_content")
     def test_llm_retries_transient_timeout(self, generate_content, _sleep):
         generate_content.side_effect = [
             RuntimeError("request timed out"),
@@ -257,8 +336,8 @@ class Phase1ContractTests(unittest.TestCase):
         self.assertNotIn("temporary_password", result["data"])
         self.assertEqual(result["private_data"]["temporary_password"], "one-time-secret")
 
-    @patch("tools.users.graph_post")
-    @patch("tools.users.NEW_USER_TEMPORARY_PASSWORD", "ConfiguredTestPassword1!")
+    @patch("opspilot.tools.users.graph_post")
+    @patch("opspilot.tools.users.NEW_USER_TEMPORARY_PASSWORD", "ConfiguredTestPassword1!")
     def test_create_user_uses_the_configured_password_for_graph_and_email_reference(self, graph_post):
         graph_post.return_value = {"id": "user-id", "displayName": "Ada Lovelace"}
         result = users_module.create_user({
@@ -275,8 +354,8 @@ class Phase1ContractTests(unittest.TestCase):
         )
         self.assertTrue(graph_payload["passwordProfile"]["forceChangePasswordNextSignIn"])
 
-    @patch("tools.users.graph_post")
-    @patch("tools.users.NEW_USER_TEMPORARY_PASSWORD", "ConfiguredTestPassword1!")
+    @patch("opspilot.tools.users.graph_post")
+    @patch("opspilot.tools.users.NEW_USER_TEMPORARY_PASSWORD", "ConfiguredTestPassword1!")
     def test_create_user_handles_missing_personal_email(self, graph_post):
         graph_post.return_value = {"id": "user-id", "displayName": "Rat Joe"}
 
@@ -288,7 +367,7 @@ class Phase1ContractTests(unittest.TestCase):
 
         self.assertIsNone(result["personal_email"])
 
-    @patch("tools.users.NEW_USER_TEMPORARY_PASSWORD", None)
+    @patch("opspilot.tools.users.NEW_USER_TEMPORARY_PASSWORD", None)
     def test_create_user_fails_when_the_configured_password_is_missing(self):
         with self.assertRaisesRegex(ValueError, "temporary password is not configured"):
             users_module.create_user({
@@ -298,9 +377,9 @@ class Phase1ContractTests(unittest.TestCase):
                 "personal_email": "ada@example.com",
             })
 
-    @patch("tools.users.update_user")
-    @patch("tools.users.find_users", return_value=[{"id": "user-id", "displayName": "Ada Lovelace"}])
-    @patch("tools.users.NEW_USER_TEMPORARY_PASSWORD", "ConfiguredTestPassword1!")
+    @patch("opspilot.tools.users.update_user")
+    @patch("opspilot.tools.users.find_users", return_value=[{"id": "user-id", "displayName": "Ada Lovelace"}])
+    @patch("opspilot.tools.users.NEW_USER_TEMPORARY_PASSWORD", "ConfiguredTestPassword1!")
     def test_reset_uses_configured_password_and_keeps_it_private(
         self, _find_users, update_user
     ):
@@ -406,7 +485,7 @@ class Phase1ContractTests(unittest.TestCase):
             "type": "plan",
             "tasks": [{"id": "users", "tool": "list_users", "parameters": {}}],
         })
-        with patch("executor.dispatch", return_value={"success": True, "users": []}):
+        with patch("opspilot.core.executor.dispatch", return_value={"success": True, "users": []}):
             result = run_plan(execution["execution_id"])
         self.assertEqual(result["type"], "completed")
         self.assertEqual(result["task_ledger"], [{
@@ -430,7 +509,7 @@ class Phase1ContractTests(unittest.TestCase):
             "type": "plan",
             "tasks": [{"id": "users", "tool": "list_users", "parameters": {}}],
         })
-        with patch("executor.dispatch", side_effect=GraphError("timeout", "timeout", retryable=True)):
+        with patch("opspilot.core.executor.dispatch", side_effect=GraphError("timeout", "timeout", retryable=True)):
             result = run_plan(execution["execution_id"])
         tool_result = result["results"]["users"]
         self.assertEqual(tool_result["error_code"], "timeout")
@@ -447,7 +526,7 @@ class Phase1ContractTests(unittest.TestCase):
             status_code=400,
             provider_code="Request_BadRequest",
         )
-        with patch("executor.dispatch", side_effect=error):
+        with patch("opspilot.core.executor.dispatch", side_effect=error):
             result = run_plan(execution["execution_id"])
         tool_result = result["results"]["users"]
         self.assertEqual(tool_result["data"]["http_status"], 400)
@@ -476,7 +555,7 @@ class Phase1ContractTests(unittest.TestCase):
                 active -= 1
             return {"success": True}
 
-        with patch("executor.dispatch", side_effect=slow_read):
+        with patch("opspilot.core.executor.dispatch", side_effect=slow_read):
             result = run_plan(execution["execution_id"])
 
         self.assertEqual(result["type"], "completed")
@@ -508,7 +587,7 @@ class Phase1ContractTests(unittest.TestCase):
                 active -= 1
             return {"success": True}
 
-        with patch("executor.dispatch", side_effect=slow_draft) as dispatch:
+        with patch("opspilot.core.executor.dispatch", side_effect=slow_draft) as dispatch:
             result = run_plan(execution["execution_id"])
 
         self.assertEqual(result["type"], "approval_required")
@@ -551,7 +630,7 @@ class Phase1ContractTests(unittest.TestCase):
                 }},
             ],
         })
-        with patch("executor.dispatch", side_effect=[
+        with patch("opspilot.core.executor.dispatch", side_effect=[
             {"success": True, "message": "Found 1 user.", "users": []},
             {"success": True, "message": "Email sent to a@example.com."},
         ]) as dispatch:
@@ -574,7 +653,7 @@ class Phase1ContractTests(unittest.TestCase):
                 }},
             ],
         })
-        with patch("executor.dispatch", return_value={"success": False, "message": "Read failed."}) as dispatch:
+        with patch("opspilot.core.executor.dispatch", return_value={"success": False, "message": "Read failed."}) as dispatch:
             result = run_plan(execution["execution_id"])
 
         self.assertEqual(result["type"], "failed")
@@ -595,7 +674,7 @@ class Phase1ContractTests(unittest.TestCase):
                 return {"success": False, "message": "Users unavailable."}
             return {"success": True, "message": "Found 2 available tenant licenses."}
 
-        with patch("executor.dispatch", side_effect=mixed_result):
+        with patch("opspilot.core.executor.dispatch", side_effect=mixed_result):
             result = run_plan(execution["execution_id"])
 
         self.assertEqual(result["type"], "partially_completed")
@@ -751,8 +830,8 @@ class Phase1ContractTests(unittest.TestCase):
         self.assertNotIn("{", response["message"])
         self.assertNotIn("123456", response["message"])
 
-    @patch("tools.ai.ask", return_value="A plain email summary.")
-    @patch("tools.ai.get_email")
+    @patch("opspilot.tools.ai.ask", return_value="A plain email summary.")
+    @patch("opspilot.tools.ai.get_email")
     def test_email_summary_requests_plain_text_with_safe_context(self, get_email_mock, ask_mock):
         get_email_mock.return_value = {
             "success": True,
@@ -846,7 +925,7 @@ class Phase1ContractTests(unittest.TestCase):
         self.assertNotIn("execution", approval)
 
     def test_frontend_displays_only_the_human_readable_response(self):
-        with open("frontend/app.js", encoding="utf-8") as frontend:
+        with open("opspilot/web/app.js", encoding="utf-8") as frontend:
             source = frontend.read()
 
         self.assertIn('addMessage(\n            "assistant",\n            response.message', source)
@@ -859,8 +938,8 @@ class Phase1ContractTests(unittest.TestCase):
         self.assertIn('case "draft_email"', source)
         self.assertIn("Draft preview", source)
 
-    @patch("tools.licenses.graph_get")
-    @patch("tools.licenses.find_users")
+    @patch("opspilot.tools.licenses.graph_get")
+    @patch("opspilot.tools.licenses.find_users")
     def test_license_tool_supplies_public_summary_for_generic_renderer(
         self, mock_find_users, mock_graph_get
     ):

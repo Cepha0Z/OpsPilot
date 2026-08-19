@@ -179,7 +179,7 @@ Example:
 ```env
 GEMINI_API_KEY=your-gemini-api-key
 
-NEBULOUS_NEW_USER_TEMPORARY_PASSWORD=your-temporary-password
+OPSPILOT_NEW_USER_TEMPORARY_PASSWORD=your-temporary-password
 ```
 
 **Never commit `.env` or real credentials to the repository.**
@@ -210,7 +210,7 @@ Start the application using the project's server configuration.
 For example:
 
 ```bash
-python server.py
+uvicorn opspilot.api.server:app --reload
 ```
 
 > The exact startup command may vary depending on your local configuration.

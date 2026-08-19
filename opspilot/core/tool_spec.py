@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import Any, Callable, Literal
 
-from audit_log import redact
-from models import CommandResult
-from tools.ai import generate_reply, summarize_email, summarize_thread
-from tools.licenses import assign_license, list_available_licenses, list_user_licenses
-from tools.mail import (
+from .audit_log import redact
+from .models import CommandResult
+from ..tools.ai import generate_reply, summarize_email, summarize_thread
+from ..tools.licenses import assign_license, list_available_licenses, list_user_licenses
+from ..tools.mail import (
     draft_email,
     get_email,
     list_recent_emails,
@@ -14,7 +14,7 @@ from tools.mail import (
     search_emails,
     send_email,
 )
-from tools.users import (
+from ..tools.users import (
     create_user,
     delete_user,
     disable_user,

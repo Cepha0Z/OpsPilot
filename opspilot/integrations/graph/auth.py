@@ -1,5 +1,5 @@
 import msal
-from config.defaults import TENANT_ID, CLIENT_ID, CLIENT_SECRET
+from ...config.defaults import TENANT_ID, CLIENT_ID, CLIENT_SECRET
 
 
 _app = None

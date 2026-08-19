@@ -1,4 +1,4 @@
-from graph.client import (
+from ..integrations.graph.client import (
     GraphError,
     graph_delete,
     graph_get,
@@ -8,7 +8,7 @@ from graph.client import (
     odata_string_literal,
     path_segment,
 )
-from config.defaults import (
+from ..config.defaults import (
     DEFAULT_DOMAIN,
     FORCE_PASSWORD_CHANGE,
     NEW_USER_TEMPORARY_PASSWORD,
@@ -27,7 +27,7 @@ def configured_new_user_temporary_password():
     if not NEW_USER_TEMPORARY_PASSWORD:
         raise ValueError(
             "New-user temporary password is not configured. Set "
-            "NEBULOUS_NEW_USER_TEMPORARY_PASSWORD."
+            "OPSPILOT_NEW_USER_TEMPORARY_PASSWORD."
         )
     return NEW_USER_TEMPORARY_PASSWORD
 

@@ -5,13 +5,13 @@ from urllib.parse import quote
 
 import requests
 
-from config.defaults import (
+from ...config.defaults import (
     GRAPH_CONNECT_TIMEOUT_SECONDS,
     GRAPH_MAX_COLLECTION_ITEMS,
     GRAPH_MAX_GET_RETRIES,
     GRAPH_READ_TIMEOUT_SECONDS,
 )
-from graph.auth import get_access_token
+from .auth import get_access_token
 
 
 GRAPH_URL = "https://graph.microsoft.com/v1.0"

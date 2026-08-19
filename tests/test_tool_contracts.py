@@ -10,9 +10,9 @@ from unittest.mock import patch
 
 os.environ.setdefault("GEMINI_API_KEY", "test-key")
 
-from graph.client import GraphError
-from tool_spec import TOOL_SPECS, get_tool_spec
-from tools import licenses, mail, users
+from opspilot.integrations.graph.client import GraphError
+from opspilot.core.tool_spec import TOOL_SPECS, get_tool_spec
+from opspilot.tools import licenses, mail, users
 
 
 class ToolSpecContractTests(unittest.TestCase):
@@ -46,7 +46,7 @@ class ToolSpecContractTests(unittest.TestCase):
 
 
 class MailToolContracts(unittest.TestCase):
-    @patch("tools.mail.graph_get_collection")
+    @patch("opspilot.tools.mail.graph_get_collection")
     def test_mail_listing_and_search_construct_safe_graph_queries(self, graph_get_collection):
         graph_get_collection.return_value = [{
             "id": "message-1", "subject": "Status", "isRead": False,
@@ -70,7 +70,7 @@ class MailToolContracts(unittest.TestCase):
         self.assertEqual(search_kwargs["limit"], 2)
         self.assertEqual(search["message"], "Found 1 email(s) matching the search.")
 
-    @patch("tools.mail.graph_post")
+    @patch("opspilot.tools.mail.graph_post")
     def test_mail_write_tools_construct_distinct_graph_payloads(self, graph_post):
         graph_post.return_value = {"id": "draft-1"}
 
@@ -99,10 +99,10 @@ class MailToolContracts(unittest.TestCase):
 
 
 class UserAndLicenseToolContracts(unittest.TestCase):
-    @patch("tools.users.graph_delete")
-    @patch("tools.users.graph_post")
-    @patch("tools.users.update_user")
-    @patch("tools.users.find_users", return_value=[{"id": "id/1", "displayName": "Ada Lovelace"}])
+    @patch("opspilot.tools.users.graph_delete")
+    @patch("opspilot.tools.users.graph_post")
+    @patch("opspilot.tools.users.update_user")
+    @patch("opspilot.tools.users.find_users", return_value=[{"id": "id/1", "displayName": "Ada Lovelace"}])
     def test_user_mutations_resolve_one_user_and_construct_graph_requests(
         self, _find_users, update_user, graph_post, graph_delete
     ):
@@ -122,7 +122,7 @@ class UserAndLicenseToolContracts(unittest.TestCase):
         self.assertEqual(graph_delete.call_args.args, ("/users/id%2F1",))
         self.assertEqual(deleted["message"], "Ada Lovelace has been deleted.")
 
-    @patch("tools.users.find_users", return_value=[])
+    @patch("opspilot.tools.users.find_users", return_value=[])
     def test_user_mutations_normalize_a_missing_target_without_graph_call(self, _find_users):
         for tool in (users.disable_user, users.enable_user, users.revoke_sessions, users.delete_user):
             with self.subTest(tool=tool.__name__):
@@ -131,7 +131,7 @@ class UserAndLicenseToolContracts(unittest.TestCase):
                 self.assertEqual(result["error_code"], "tool_failed")
                 self.assertIn("No user found", result["public_summary"])
 
-    @patch("tools.licenses.graph_update_license")
+    @patch("opspilot.tools.licenses.graph_update_license")
     def test_assign_license_uses_exact_user_id_and_normalizes_graph_failure(self, graph_update_license):
         success = licenses.assign_license({"user_id": "id/with?chars", "display_name": "Ada", "license": "Flow Free"})
         self.assertTrue(success["success"])

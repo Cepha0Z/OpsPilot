@@ -6,18 +6,18 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
-from actor import Actor
-from audit_log import log_event, redact
-from config.defaults import (
+from .actor import Actor
+from .audit_log import log_event, redact
+from ..config.defaults import (
     WORKFLOW_DEADLINE_SECONDS,
     WORKFLOW_MAX_ACTIVE_EXECUTIONS,
     WORKFLOW_MAX_PARALLEL_READS,
 )
-from graph.client import GraphError
-from models import Plan, sanitize_public_text
-from router.dispatcher import dispatch
-from tool_spec import TOOL_SPECS, get_tool_spec
-from workflow_store import APPROVAL_TTL_SECONDS, expiry, now, workflow_store
+from ..integrations.graph.client import GraphError
+from .models import Plan, sanitize_public_text
+from ..router.dispatcher import dispatch
+from .tool_spec import TOOL_SPECS, get_tool_spec
+from .workflow_store import APPROVAL_TTL_SECONDS, expiry, now, workflow_store
 
 
 _execution_slots = threading.BoundedSemaphore(WORKFLOW_MAX_ACTIVE_EXECUTIONS)
@@ -902,7 +902,7 @@ def _execute_ready_reads(state, tasks):
 
     results = {}
     workers = max(1, min(WORKFLOW_MAX_PARALLEL_READS, len(tasks)))
-    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="nebulous-read") as pool:
+    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="opspilot-read") as pool:
         futures = {pool.submit(execute_tool, task, state): task for task in tasks}
         for future in as_completed(futures):
             task = futures[future]
@@ -923,7 +923,7 @@ def run_plan(execution_id):
         return {
             "type": "error",
             "execution_id": execution_id,
-            "message": "Nebulous is busy. Please retry this workflow shortly.",
+            "message": "OpsPilot is busy. Please retry this workflow shortly.",
             "error_code": "workflow_capacity_exhausted",
             "retryable": True,
         }

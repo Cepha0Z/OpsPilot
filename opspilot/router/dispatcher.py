@@ -1,4 +1,4 @@
-from tool_spec import get_tool_spec
+from ..core.tool_spec import get_tool_spec
 
 
 def dispatch(request):

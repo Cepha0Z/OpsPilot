@@ -1,5 +1,5 @@
-from llm.client import ask
-from tools.mail import get_email
+from ..services.llm.client import ask
+from .mail import get_email
 
 
 def summarize_thread(parameters):

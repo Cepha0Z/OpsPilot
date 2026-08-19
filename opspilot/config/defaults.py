@@ -15,7 +15,8 @@ FORCE_PASSWORD_CHANGE = True
 # deployments working while they move to the namespaced setting. Never add a
 # default: creating an account with an unknown credential is unsafe.
 NEW_USER_TEMPORARY_PASSWORD = (
-    os.getenv("NEBULOUS_NEW_USER_TEMPORARY_PASSWORD")
+    os.getenv("OPSPILOT_NEW_USER_TEMPORARY_PASSWORD")
+    or os.getenv("NEBULOUS_NEW_USER_TEMPORARY_PASSWORD")  # Backward compatibility.
     or os.getenv("TEMPORARY_PASSWORD")
 )
 
@@ -26,6 +27,6 @@ GRAPH_MAX_COLLECTION_ITEMS = int(os.getenv("GRAPH_MAX_COLLECTION_ITEMS", "1000")
 
 # Synchronous workflow engine limits.  These bound local resource use without
 # introducing a separate worker service.
-WORKFLOW_DEADLINE_SECONDS = int(os.getenv("NEBULOUS_WORKFLOW_DEADLINE_SECONDS", "300"))
-WORKFLOW_MAX_ACTIVE_EXECUTIONS = int(os.getenv("NEBULOUS_WORKFLOW_MAX_ACTIVE", "4"))
-WORKFLOW_MAX_PARALLEL_READS = int(os.getenv("NEBULOUS_WORKFLOW_MAX_PARALLEL_READS", "4"))
+WORKFLOW_DEADLINE_SECONDS = int(os.getenv("OPSPILOT_WORKFLOW_DEADLINE_SECONDS", os.getenv("NEBULOUS_WORKFLOW_DEADLINE_SECONDS", "300")))
+WORKFLOW_MAX_ACTIVE_EXECUTIONS = int(os.getenv("OPSPILOT_WORKFLOW_MAX_ACTIVE", os.getenv("NEBULOUS_WORKFLOW_MAX_ACTIVE", "4")))
+WORKFLOW_MAX_PARALLEL_READS = int(os.getenv("OPSPILOT_WORKFLOW_MAX_PARALLEL_READS", os.getenv("NEBULOUS_WORKFLOW_MAX_PARALLEL_READS", "4")))

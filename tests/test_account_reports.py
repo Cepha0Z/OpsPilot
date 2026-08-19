@@ -4,10 +4,10 @@ import unittest
 os.environ.setdefault("GEMINI_API_KEY", "test-key")
 
 from fake_graph import FakeGraph
-from agent import final_response
-from planner import parse_plan
-from tool_spec import get_tool_spec
-from tools.users import get_account_report
+from opspilot.core.agent import final_response
+from opspilot.core.planner import parse_plan
+from opspilot.core.tool_spec import get_tool_spec
+from opspilot.tools.users import get_account_report
 
 
 class AccountReportTests(unittest.TestCase):

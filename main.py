@@ -1,4 +1,4 @@
-from agent import run_agent
+from opspilot.core.agent import run_agent
 
 
 while True:

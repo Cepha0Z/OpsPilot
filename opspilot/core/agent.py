@@ -1,10 +1,10 @@
 import uuid
 import re
 
-from actor import Actor
-from audit_log import SENSITIVE_KEYS, log_event, redact
-from models import Plan, sanitize_public_text
-from workflow_store import workflow_store
+from .actor import Actor
+from .audit_log import SENSITIVE_KEYS, log_event, redact
+from .models import Plan, sanitize_public_text
+from .workflow_store import workflow_store
 
 
 PRIVATE_RESULT_FIELDS = SENSITIVE_KEYS | {
@@ -49,13 +49,13 @@ def unsupported_capability_response(user_message, session_id):
     recent_users = "most recent users" in text or "newest users" in text
 
     if mail_history:
-        message = "Nebulous cannot yet compare tenant users with Sent Items or mailbox history. It can list users and search messages separately, but it cannot determine who has not received an email."
+        message = "OpsPilot cannot yet compare tenant users with Sent Items or mailbox history. It can list users and search messages separately, but it cannot determine who has not received an email."
     elif dynamic_fan_out:
-        message = "Nebulous cannot yet apply a workflow dynamically to every user returned by another task. Please name the specific users, or request a supported fixed set of actions."
+        message = "OpsPilot cannot yet apply a workflow dynamically to every user returned by another task. Please name the specific users, or request a supported fixed set of actions."
     elif dataset_comparison:
-        message = "Nebulous cannot yet compare two Graph datasets to select matching users. Please request one supported lookup or provide the specific users to inspect."
+        message = "OpsPilot cannot yet compare two Graph datasets to select matching users. Please request one supported lookup or provide the specific users to inspect."
     elif recent_users:
-        message = "Nebulous cannot currently rank users by when their accounts were created. The available user list is not a recent-user report."
+        message = "OpsPilot cannot currently rank users by when their accounts were created. The available user list is not a recent-user report."
     else:
         return None
     return {
@@ -108,14 +108,14 @@ def final_response(result, session_id=None):
         "execution": build_execution_report(result),
     }
 
-from planner import (
+from .planner import (
     plan_request,
     continue_plan,
     plan_diagnostic,
     parse_plan,
 )
 
-from executor import (
+from .executor import (
     create_execution_plan,
     run_plan,
     approve_task,

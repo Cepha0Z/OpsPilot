@@ -10,7 +10,7 @@ from copy import deepcopy
 from urllib.parse import unquote
 from unittest.mock import patch
 
-from graph.client import GraphError
+from opspilot.integrations.graph.client import GraphError
 
 
 class FakeGraph:
@@ -127,15 +127,15 @@ class FakeGraph:
     @contextmanager
     def patched_tools(self):
         with ExitStack() as stack:
-            stack.enter_context(patch("tools.users.graph_get_collection", side_effect=self.get_collection))
-            stack.enter_context(patch("tools.users.graph_get", side_effect=self.get))
-            stack.enter_context(patch("tools.users.graph_post", side_effect=self.post))
-            stack.enter_context(patch("tools.users.graph_patch", side_effect=self.patch))
-            stack.enter_context(patch("tools.users.graph_delete", side_effect=self.delete))
-            stack.enter_context(patch("tools.licenses.find_users", side_effect=self.find_users))
-            stack.enter_context(patch("tools.licenses.graph_get", side_effect=self.get))
-            stack.enter_context(patch("tools.licenses.graph_post", side_effect=self.post))
-            stack.enter_context(patch("tools.mail.graph_get_collection", side_effect=self.get_collection))
-            stack.enter_context(patch("tools.mail.graph_get", side_effect=self.get))
-            stack.enter_context(patch("tools.mail.graph_post", side_effect=self.post))
+            stack.enter_context(patch("opspilot.tools.users.graph_get_collection", side_effect=self.get_collection))
+            stack.enter_context(patch("opspilot.tools.users.graph_get", side_effect=self.get))
+            stack.enter_context(patch("opspilot.tools.users.graph_post", side_effect=self.post))
+            stack.enter_context(patch("opspilot.tools.users.graph_patch", side_effect=self.patch))
+            stack.enter_context(patch("opspilot.tools.users.graph_delete", side_effect=self.delete))
+            stack.enter_context(patch("opspilot.tools.licenses.find_users", side_effect=self.find_users))
+            stack.enter_context(patch("opspilot.tools.licenses.graph_get", side_effect=self.get))
+            stack.enter_context(patch("opspilot.tools.licenses.graph_post", side_effect=self.post))
+            stack.enter_context(patch("opspilot.tools.mail.graph_get_collection", side_effect=self.get_collection))
+            stack.enter_context(patch("opspilot.tools.mail.graph_get", side_effect=self.get))
+            stack.enter_context(patch("opspilot.tools.mail.graph_post", side_effect=self.post))
             yield self

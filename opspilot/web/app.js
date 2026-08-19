@@ -140,7 +140,7 @@ async function sendMessage(message = null) {
 
         addMessage(
             "assistant",
-            "Sorry, I couldn't connect to Nebulous AI."
+            "Sorry, I couldn't connect to OpsPilot."
         );
 
     } finally {
@@ -613,7 +613,7 @@ function getApprovalInfo(data) {
                 style: "normal",
                 title: "Send email",
                 description:
-                    "The following email will be sent from the configured Nebulous Design mailbox.",
+                    "The following email will be sent from the configured Microsoft 365 mailbox.",
                 target: parameters.recipient,
                 targetLabel: "Recipient",
                 detailLabel: "Subject",
@@ -687,7 +687,7 @@ function getApprovalInfo(data) {
                 style: "warning",
                 title: "Confirm action",
                 description:
-                    "Nebulous AI is requesting permission to perform this action.",
+                    "OpsPilot is requesting permission to perform this action.",
                 target: user,
                 targetLabel: "Target",
                 buttonText: "Approve",
